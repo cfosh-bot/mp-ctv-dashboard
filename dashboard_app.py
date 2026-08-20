@@ -75,9 +75,13 @@ if not st.session_state.authed:
         st.stop()
 
 # The data itself is private -- pulled at runtime from a private HF Dataset
-# repo (never committed to this public repo), refreshed once a day since
-# that's how often the droplet's pipeline actually updates it.
-@st.cache_data(ttl=86400)
+# repo (never committed to this public repo). Cached for an hour so normal
+# navigation doesn't re-hit HF on every rerun; the "Refresh data" button
+# near the top of the page busts this early for anyone who doesn't want to
+# wait, without needing Streamlit Cloud's own "Manage app" access (that's
+# owner/collaborator-only -- not something to hand out to the whole team
+# just so they can force a refresh).
+@st.cache_data(ttl=3600)
 def get_history_path() -> str:
     return hf_hub_download(
         repo_id="Cfosh/mp-ctv-dashboard",
@@ -744,6 +748,10 @@ def render_reason_footer(where_sql: str, params: list):
 
 
 # ── page setup ────────────────────────────────────────────────────────────
+
+if st.button("Refresh data", help="Re-pull the latest file instead of waiting up to an hour for the cache to expire."):
+    get_history_path.clear()
+    st.rerun()
 
 st.title("MP CTV Delivery Dashboard")
 
