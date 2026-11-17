@@ -149,6 +149,12 @@ def get_connection():
             '{HISTORY_PATH}',
             compression = 'gzip',
             header = true,
+            -- Spell out standard CSV quoting. Left to auto-detect, DuckDB only
+            -- samples the first ~20k rows; if none of those contain an escaped
+            -- quote ("") it picks no escape char, and a later line name like
+            -- "PAUSED 11/13" ... then fails with "unterminated quote".
+            quote = '"',
+            escape = '"',
             columns = {{
                 'Run_Date':                 'VARCHAR',
                 'SF_Line_Item_ID':          'VARCHAR',
